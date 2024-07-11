@@ -55,11 +55,6 @@ unordered_map<Point, Dot, Point::HashFunction> grid;
 unsigned int Count = 0;
 string line;
 Point* nextPoint;
-//Allow move
-//horizontal x +/- 1; if (x+1)/(x-1) == IsPicked allow x +/- 2;
-//vertical y +/- 1; if (y+1)/(y-1) == IsPicked allow y +/- 2;
-//diagonal x +/- 1 & y +/- 1; if (x +/- 1 & y +/- 1) == IsPicked allow x +/- 2 & y +/- 2;
-// x +/- 1, y +/- 2; y +/- 1, x +/- 2
 
 bool IsMoveAllowed(const Point &startMove, const Point &move, Point* returnPoint)
 {
@@ -69,13 +64,13 @@ bool IsMoveAllowed(const Point &startMove, const Point &move, Point* returnPoint
         return false;
     }
 
-    const Point nextPoint = Point(startMove + move);
-    returnPoint->x_pos = nextPoint.x_pos;
-    returnPoint->y_pos = nextPoint.y_pos;
+    const Point nextP = Point(startMove + move);
+    returnPoint->x_pos = nextP.x_pos;
+    returnPoint->y_pos = nextP.y_pos;
 
-    if(grid[nextPoint].IsPicked)
+    if(grid[nextP].IsPicked)
     {
-        return IsMoveAllowed(nextPoint, move, returnPoint);
+        return IsMoveAllowed(nextP, move, returnPoint);
     }
 
     return true;
