@@ -53,7 +53,6 @@ struct Point
 
 unordered_map<Point, Dot, Point::HashFunction> grid;
 unsigned int Count = 0;
-string line;
 Point* nextPoint;
 
 bool IsMoveAllowed(const Point &startMove, const Point &move, Point* returnPoint)
@@ -99,7 +98,6 @@ void SetDotPick(const Point &point, bool isPicked)
 void CycleMove(const Point startMove, const vector<Point>& moves, unsigned short length)
 {
     SetDotPick(startMove, true);
-    line.push_back(grid[startMove].Letter);
 
     for (const Point& move : moves)
     {
@@ -112,32 +110,15 @@ void CycleMove(const Point startMove, const vector<Point>& moves, unsigned short
         {
             Count++;
             const Point point = *nextPoint;
-            // const Point point = startMove + move;
             SetDotPick(point, false);
-            line.append("->");
-            line.push_back(grid[point].Letter);
-            cout << line << '\n';
-
-            line.pop_back();
-            line.pop_back();
-            line.pop_back();
         }
         else
         {
-            // const Point point = startMove + move;
             const Point point = *nextPoint;
-            line.append("->");
             CycleMove(point, moves, length - 1);
         }
     }
-
-    if(!line.empty())
-        line.pop_back();
-    if(!line.empty())
-        line.pop_back();
-    if(!line.empty())
-        line.pop_back();
-    
+   
     SetDotPick(startMove, false);
 }
 
@@ -145,12 +126,8 @@ unsigned int countPatternsFrom(char firstDot, unsigned short length)
 {
     ResetDots();
     Count = 0;
-    line.clear();
     nextPoint = new Point;
-
-    cout << "Start: " << firstDot << " Length: " << length << '\n';
-    cout << "Dots: " << '\n';
-
+    
     if(length < 1 || length > 9)
     {
         return 0;
@@ -158,13 +135,10 @@ unsigned int countPatternsFrom(char firstDot, unsigned short length)
 
     if(length == 1)
     {
-        cout << firstDot << '\n';
-
         return 1;
     }
 
-    vector<Point> moves = 
-    // const Point moves [] =
+    const vector<Point> moves = 
     {
         {1, 0}, {-1, 0},
         {0, 1}, {-0, -1},
@@ -185,9 +159,8 @@ unsigned int countPatternsFrom(char firstDot, unsigned short length)
     }
     
     CycleMove(startPoint, moves, length - 1);
-
-    cout << "Return count = " << Count << '\n';
     delete nextPoint;
+    
     return Count;
 }
 
