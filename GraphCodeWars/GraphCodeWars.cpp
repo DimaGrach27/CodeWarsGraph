@@ -35,6 +35,11 @@ struct Point
         return x_pos == p.x_pos && y_pos == p.y_pos;
     }
 
+    Point operator+(Point const& p) const
+    {
+        return { x_pos + p.x_pos, y_pos + p.y_pos };
+    }
+
     struct HashFunction
     {
         size_t operator()(const Point& p) const
@@ -47,14 +52,16 @@ struct Point
 };
 
 unordered_map<Point, Dot, Point::HashFunction> grid;
-unsigned int Count = 0; 
+unsigned int Count = 0;
+string line;
+Point* nextPoint;
 //Allow move
 //horizontal x +/- 1; if (x+1)/(x-1) == IsPicked allow x +/- 2;
 //vertical y +/- 1; if (y+1)/(y-1) == IsPicked allow y +/- 2;
 //diagonal x +/- 1 & y +/- 1; if (x +/- 1 & y +/- 1) == IsPicked allow x +/- 2 & y +/- 2;
 // x +/- 1, y +/- 2; y +/- 1, x +/- 2
 
-bool IsMoveAllowed(const Point &startMove, const Point &move)
+bool IsMoveAllowed(const Point &startMove, const Point &move, Point* returnPoint)
 {
     if(startMove.x_pos + move.x_pos > 1 || startMove.x_pos + move.x_pos < -1 ||
         startMove.y_pos + move.y_pos > 1 || startMove.y_pos + move.y_pos < -1)
@@ -62,11 +69,13 @@ bool IsMoveAllowed(const Point &startMove, const Point &move)
         return false;
     }
 
-    const Point nextPoint = Point(startMove.x_pos + move.x_pos, startMove.y_pos + move.y_pos);
+    const Point nextPoint = Point(startMove + move);
+    returnPoint->x_pos = nextPoint.x_pos;
+    returnPoint->y_pos = nextPoint.y_pos;
 
     if(grid[nextPoint].IsPicked)
     {
-        return IsMoveAllowed(nextPoint, move);
+        return IsMoveAllowed(nextPoint, move, returnPoint);
     }
 
     return true;
@@ -95,11 +104,11 @@ void SetDotPick(const Point &point, bool isPicked)
 void CycleMove(const Point startMove, const vector<Point>& moves, unsigned short length)
 {
     SetDotPick(startMove, true);
-    cout << grid[startMove].Letter << "->";
+    line.push_back(grid[startMove].Letter);
 
     for (const Point& move : moves)
     {
-        if(!IsMoveAllowed(startMove, move))
+        if(!IsMoveAllowed(startMove, move, nextPoint))
         {
             continue;
         }
@@ -107,20 +116,42 @@ void CycleMove(const Point startMove, const vector<Point>& moves, unsigned short
         if(length == 1)
         {
             Count++;
-            SetDotPick(move, false);
-            cout << '\n';
+            const Point point = *nextPoint;
+            // const Point point = startMove + move;
+            SetDotPick(point, false);
+            line.append("->");
+            line.push_back(grid[point].Letter);
+            cout << line << '\n';
 
-        }else
+            line.pop_back();
+            line.pop_back();
+            line.pop_back();
+        }
+        else
         {
-            CycleMove(move, moves, length - 1);
+            // const Point point = startMove + move;
+            const Point point = *nextPoint;
+            line.append("->");
+            CycleMove(point, moves, length - 1);
         }
     }
+
+    if(!line.empty())
+        line.pop_back();
+    if(!line.empty())
+        line.pop_back();
+    if(!line.empty())
+        line.pop_back();
+    
+    SetDotPick(startMove, false);
 }
 
 unsigned int countPatternsFrom(char firstDot, unsigned short length)
 {
     ResetDots();
     Count = 0;
+    line.clear();
+    nextPoint = new Point;
 
     cout << "Start: " << firstDot << " Length: " << length << '\n';
     cout << "Dots: " << '\n';
@@ -158,8 +189,10 @@ unsigned int countPatternsFrom(char firstDot, unsigned short length)
         }
     }
     
-    CycleMove(startPoint, moves, length);
-    
+    CycleMove(startPoint, moves, length - 1);
+
+    cout << "Return count = " << Count << '\n';
+    delete nextPoint;
     return Count;
 }
 
@@ -180,9 +213,9 @@ int main(int argc, char* argv[])
     assert(countPatternsFrom('A', 10) == 0);
     assert(countPatternsFrom('B', 1) == 1);
     assert(countPatternsFrom('C', 2) == 5);
-    // assert(countPatternsFrom('D', 3) == 37);
-    // assert(countPatternsFrom('E', 4) == 256);
-    // assert(countPatternsFrom('E', 8) == 23280);
+    assert(countPatternsFrom('D', 3) == 37);
+    assert(countPatternsFrom('E', 4) == 256);
+    assert(countPatternsFrom('E', 8) == 23280);
     
     return 0;
 }
